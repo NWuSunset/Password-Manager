@@ -28,7 +28,7 @@ std::vector<unsigned char> derive_key(const std::string &password, const std::ve
 }
 
 struct Ciphertext {
-    std::vector<unsigned char> nonce;
+    std::vector<unsigned char> nonce; //number used once
     std::vector<unsigned char> ct;
 };
 
@@ -68,6 +68,13 @@ std::string decrypt(const std::vector<unsigned char> &key, const Ciphertext &blo
 }
 
 int main() {
+    std::cout << "Enter args: " << std::endl;
+
+
+
+
+
+    //Test salting and encrpytions
     if (!init_sodium()) return 1;
 
     std::string password = "the swift brown fox";
