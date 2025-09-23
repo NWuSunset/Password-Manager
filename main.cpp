@@ -70,15 +70,15 @@ std::string decrypt(const std::vector<unsigned char> &key, const Ciphertext &blo
 int main() {
     if (!init_sodium()) return 1;
 
-    std::string password = "correct horse battery staple";
+    std::string password = "the swift brown fox";
     // generate salt
     std::vector<unsigned char> salt(crypto_pwhash_SALTBYTES);
     randombytes_buf(salt.data(), salt.size());
 
     auto key = derive_key(password, salt);
-    std::string plaintext = "my secret password: p@ssw0rd";
+    std::string plaintext = "Test Password";
 
-    auto blob = encrypt(key, plaintext, "vault-v1"); // optional AAD: vault version or metadata
+    auto blob = encrypt(key, plaintext, "vault-v1"); 
 
     // to store: keep salt, blob.nonce, blob.ct
     std::cout << "Encrypted size: " << blob.ct.size() << " nonce size " << blob.nonce.size() << "\n";
