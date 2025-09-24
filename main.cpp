@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "Parser.h"
 
 bool init_sodium() {
     if (sodium_init() < 0) return false;
@@ -70,10 +71,20 @@ std::string decrypt(const std::vector<unsigned char> &key, const Ciphertext &blo
 int main() {
     std::cout << "Enter args: " << std::endl;
 
+    /*CLI arguments list:
+        -init
+
+    */
+    while (true) {
+    Parser parser;
+    //Command parser
+    std::string request; //add an actual user request
+    std::vector<std::string> command = parser.parse(request);
+    parser.executeCommand(command);
+    }
 
 
-
-
+/*
     //Test salting and encrpytions
     if (!init_sodium()) return 1;
 
@@ -92,7 +103,7 @@ int main() {
 
     // Now decrypt
     auto recovered = decrypt(key, blob, "vault-v1");
-    std::cout << "Recovered plaintext: " << recovered << "\n";
+    std::cout << "Recovered plaintext: " << recovered << "\n"; */
     return 0;
 }
 
