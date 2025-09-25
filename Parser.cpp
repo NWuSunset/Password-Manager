@@ -2,9 +2,9 @@
 #include <sstream>
 #include <iostream>
 
-Parser::Parser() {
+Parser::Parser(Vault& v) : vault(v) {
     command_table = {
-        {"init", [this](const std::vector<std::string>& cmd) {handle_add(cmd); }},
+        {"init", [this](const std::vector<std::string>& cmd) {handle_init(cmd); }},
         {"add", [this](const std::vector<std::string>& cmd) {handle_add(cmd); }}
     };
 }
@@ -40,9 +40,10 @@ void Parser::executeCommand(std::vector<std::string> cmd) {
 }
 
 void Parser::handle_init(const std::vector<std::string> & cmd) {
-    
+    std::string defaultVaultPath = std::string(getenv("HOME")) + "/.password_manager_vault.db";
+    vault.init(defaultVaultPath);
 }
 
 void Parser::handle_add( const std::vector<std::string> & cmd) {
-
+    vault.add();
 }

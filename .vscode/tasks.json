@@ -6,16 +6,17 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "${workspaceFolder}/*.cpp",
+                "*.cpp",
                 "-o",
                 "main",
-                "-lsodium"
+                "-lsodium",
+                "-lsqlite3"
             ],
             "group": "build",
             "problemMatcher": [
                 "$gcc"
             ],
-            "detail": "Compile all .cpp files and link with libsodium"
+            "detail": "Compile all .cpp files and link with libsodium and sqlite3"
         },
         {
             "type": "cppbuild",
