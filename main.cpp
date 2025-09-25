@@ -75,13 +75,15 @@ int main() {
         -init
 
     */
-    while (true) {
+   
     Parser parser;
     //Command parser
     std::string request; //add an actual user request
+    std::getline(std::cin, request);
+
     std::vector<std::string> command = parser.parse(request);
     parser.executeCommand(command);
-    }
+    
 
 
 /*

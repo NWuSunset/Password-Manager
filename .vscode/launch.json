@@ -13,10 +13,10 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false, // <-- This is important!
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "Build with g++", // <--- Add this line
+            "preLaunchTask": "Build with g++",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
