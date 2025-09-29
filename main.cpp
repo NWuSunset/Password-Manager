@@ -15,7 +15,7 @@ bool init_sodium() {
 int main() {
     if (!init_sodium()) return 1;
 
-    std::cout << "Enter args: " << std::endl;
+    
 
     /*CLI arguments list:
         -init
@@ -23,13 +23,21 @@ int main() {
     */
     Vault vault;
     Parser parser(vault);
+
+    while (true) {
+    std::cout << "Enter args: " << std::endl;
     //Command parser
     std::string request; //add an actual user request
     std::getline(std::cin, request);
 
     std::vector<std::string> command = parser.parse(request);
+    if (command.size() >= 2 && command[0] == "pmgr" && command[1] == "quit") {
+        std::cout << "Quitting" << std::endl;
+        break;
+    }
+
     parser.executeCommand(command);
-    
+    }
 
 
 /*

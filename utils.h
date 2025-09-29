@@ -26,7 +26,7 @@ struct Ciphertext {
     std::vector<unsigned char> nonce; //number used once
     std::vector<unsigned char> ct; //ciphertext
 };
-
+//aad = auditional auth data
 Ciphertext encrypt(const std::vector<unsigned char> &key, const std::string &plaintext, const std::string &aad = "") {
     Ciphertext out;
     out.nonce.resize(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES); //allocate space for nonce

@@ -19,6 +19,7 @@ class Parser {
         //cmd handlers 
         void handle_add(const std::vector<std::string> & cmd);
         void handle_init(const std::vector<std::string> & cmd);
+        void handle_list(const std::vector<std::string>& cmd); 
 };
 
 #endif

@@ -39,6 +39,7 @@ void Vault::init(std::string vaultPath) {
     std::cout << "Enter master password: " << std::endl;
     std::string m_pwd;
     std::getline(std::cin, m_pwd);
+    setMasterPassword(m_pwd);
 
     // generate salt
     std::vector<unsigned char> salt(crypto_pwhash_SALTBYTES);
@@ -67,8 +68,40 @@ void Vault::init(std::string vaultPath) {
     std::cout << "Vault initialized and encrypted with master password.\n";
 }
 
-void Vault::add() {
+void Vault::add(std::string title, std::string username, std::string password, std::string webstie) {
+    //encrypt before storing
+    std::vector<unsigned char> salt(crypto_pwhash_SALTBYTES);
+    randombytes_buf(salt.data(), salt.size());
+    auto key = derive_key(getMasterPassword(), salt);
+    auto blob = encrypt(key, password, title);
+    
+    const char* sql = "INSERT INTO passwords (service, username, password, salt, nonce) VALUE (?, ?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_blob(stmt, 3, blob.ct.data(), blob.ct.size(), SQLITE_STATIC); //encrpyted password
+        sqlite3_bind_blob(stmt, 4, salt.data(), salt.size(), SQLITE_STATIC);
+        sqlite3_bind_blob(stmt, 5, blob.nonce.data(), blob.nonce.size(), SQLITE_STATIC);
 
+        if (sqlite3_step(stmt) != SQLITE_DONE) {
+            std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+    }
+}
+
+void Vault::list() {
+
+}
+
+void Vault::setMasterPassword(const std::string& pwd) {
+    master_password = pwd;
+}
+std::string  Vault::getMasterPassword() {
+    return master_password;
 }
 
 Vault::~Vault() {
