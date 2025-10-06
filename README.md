@@ -6,3 +6,5 @@ Todo:
 - [ ] Add search functionality for entries in a vault
 - [ ] (For development) add easier way to test program than manually entering values
 - [ ] Add support for naming vaults (the sqlite database file)
+- [ ] Enable user to delete vaults (requiring confermation)
+- [ ] Add support for vault backups (just in case the user accidentally deletes a vault), and just for general backup stuff
