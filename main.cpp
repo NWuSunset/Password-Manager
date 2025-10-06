@@ -29,7 +29,7 @@ int main() {
    // parser.parse("pmgr list");
     while (true) {
 
-    std::cout << "Enter args: " << std::endl;
+    std::cout << "Enter args (make sure to use pmgr before commands): " << std::endl;
     //Command parser
     std::string request; //add an actual user request
     std::getline(std::cin, request);

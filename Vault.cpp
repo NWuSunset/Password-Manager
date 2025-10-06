@@ -15,6 +15,7 @@ void Vault::init(std::string vaultPath) {
                     "service TEXT NOT NULL,"
                     "username TEXT NOT NULL,"
                     "password BLOB NOT NULL,"
+                    "website TEXT NOT NULL,"
                     "salt BLOB NOT NULL,"
                     "nonce BLOB NOT NULL);";
     char* errMsg = nullptr;
@@ -68,23 +69,24 @@ void Vault::init(std::string vaultPath) {
     std::cout << "Vault initialized and encrypted with master password.\n";
 }
 
-void Vault::add(std::string title, std::string username, std::string password, std::string website) {
-    std::cout << title << username << password << std::endl;
+void Vault::add(std::string service, std::string username, std::string password, std::string website) {
+    std::cout << service << username << password << website << std::endl;
     
     //encrypt before storing
     std::vector<unsigned char> salt(crypto_pwhash_SALTBYTES);
     randombytes_buf(salt.data(), salt.size());
     auto key = derive_key(getMasterPassword(), salt);
-    auto blob = encrypt(key, password, title);
+    auto blob = encrypt(key, password, service);
     
-    const char* sql = "INSERT INTO passwords (service, username, password, salt, nonce) VALUES (?, ?, ?, ?, ?);";
+    const char* sql = "INSERT INTO passwords (service, username, password, website, salt, nonce) VALUES (?, ?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 1, service.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_blob(stmt, 3, blob.ct.data(), blob.ct.size(), SQLITE_STATIC); //encrpyted password
         sqlite3_bind_blob(stmt, 4, salt.data(), salt.size(), SQLITE_STATIC);
         sqlite3_bind_blob(stmt, 5, blob.nonce.data(), blob.nonce.size(), SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 6, website.c_str(), -1, SQLITE_STATIC);
 
         if (sqlite3_step(stmt) != SQLITE_DONE) {
             std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
@@ -93,6 +95,7 @@ void Vault::add(std::string title, std::string username, std::string password, s
     } else {
         std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
     }
+    std::cout << "Sucessfully added entry into vault"  << std::endl;
 }
 
 void Vault::list() {
@@ -112,6 +115,8 @@ void Vault::list() {
             const unsigned char* nonce = reinterpret_cast<const unsigned char*>(sqlite3_column_blob(stmt, 5));
             int nonce_size = sqlite3_column_bytes(stmt, 5);
 
+            std::string website = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+
 
             std::vector<unsigned char> salt_vector(salt, salt+salt_size);
             auto key = derive_key(getMasterPassword(), salt_vector);
@@ -127,7 +132,10 @@ void Vault::list() {
                 password = "decryption failed";
             }
 
-            std::cout << "Service: " << service << "\nUsername: " << username << "\nPassword: " << password << std::endl;
+            std::cout << "Service: " << service 
+            << "\nUsername: " << username 
+            << "\nPassword: " << password 
+            << "\nWebsite: " << website << std::endl;
         }
         sqlite3_finalize(stmt);
     } else {

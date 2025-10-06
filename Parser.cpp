@@ -65,27 +65,27 @@ void Parser::handle_init(const std::vector<std::string> & cmd) {
 }
 
 void Parser::handle_add( const std::vector<std::string> & cmd) {
-    //adding ex: *pmgr add --title "Bank" --username "me" --password "1234"
+    //adding ex: *pmgr add --service "Bank" --username "me" --password "1234"
     /*
         Flags to add: 
-            --title
+            --service
             --username
             --password
             --website URL (defaults to none if left blank)
     */
    std::unordered_map<std::string, std::string> args;
    for (size_t i = 2; i < cmd.size(); i++) {
-    if (cmd[i].rfind("--", 0) == 0 && i + 1 < cmd.size()) { //if you find an argument flag (like --title)
-        args[cmd[i]] = cmd[i+1]; //the title is the next word  
+    if (cmd[i].rfind("--", 0) == 0 && i + 1 < cmd.size()) { //if you find an argument flag (like --service)
+        args[cmd[i]] = cmd[i+1]; //the service is the next word  
         ++i;
     }
    }
-    std::string title = args["--title"];
+    std::string service = args["--service"];
     std::string username = args["--username"];
     std::string password = args["--password"];
     std::string website = args.count("--website") ? args["--website"] : "";
     
-    vault.add(title, username, password, website);
+    vault.add(service, username, password, website);
 }
 
 void Parser::handle_list(const std::vector<std::string>& cmd) {

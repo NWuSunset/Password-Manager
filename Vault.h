@@ -14,7 +14,7 @@ class Vault {
         void setMasterPassword(const std::string& pwd);
         std::string getMasterPassword();
         void init(std::string vaultPath); //acts as constructor
-        void add(std::string title, std::string username, std::string password, std::string webstie);
+        void add(std::string service, std::string username, std::string password, std::string webstie);
         void list();
         ~Vault(); // Destructor to close DB
 };
