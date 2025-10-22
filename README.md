@@ -8,3 +8,4 @@ Todo:
 - [ ] Add support for naming vaults (the sqlite database file)
 - [ ] Enable user to delete vaults (requiring confermation)
 - [ ] Add support for vault backups (just in case the user accidentally deletes a vault), and just for general backup stuff
+- [ ] Add config file for editing stuff like default directories
