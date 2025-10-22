@@ -2,6 +2,8 @@
 #include "utils.h"
 #include <iostream>
 
+#define VAULTS_PATH = std::string(getenv("HOME"))  + "/pmgr_vaults"
+
 void Vault::init(std::string vaultPath) {
     if (sqlite3_open(vaultPath.c_str(), &db) != SQLITE_OK) { //open the sqlite database 
         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
@@ -49,7 +51,7 @@ void Vault::init(std::string vaultPath) {
     //derive master key
     auto key = derive_key(m_pwd, salt);
     std::string plaintext = "a secret password";
-    auto blob = encrypt(key, plaintext, "vault-v1"); 
+    Ciphertext blob = encrypt(key, plaintext, "vault-v1"); 
 
     sqlite3_stmt* stmt;
     const char* insert_sql = "INSERT INTO vault_meta (salt, nonce, ct) VALUES (?, ?, ?);";
@@ -96,6 +98,72 @@ void Vault::add(std::string service, std::string username, std::string password,
         std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
     }
     std::cout << "Sucessfully added entry into vault"  << std::endl;
+}
+
+void Vault::open(std::string vaultPath) {
+    std::cout << vaultPath << std::endl;
+
+    // Open existing database
+    if (sqlite3_open(vaultPath.c_str(), &db) != SQLITE_OK) { //check if database exists
+        std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+        db = nullptr;
+        return;
+    }
+
+    // Retrieve salt, nonce, and ciphertext from vault_meta
+    const char* sql = "SELECT salt, nonce, ct FROM vault_meta LIMIT 1;";
+    sqlite3_stmt* stmt;
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) { //prepare sql statement
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_ROW) { //if we don't find the correct metadata for the vault
+        std::cerr << "No vault metadata found. Initialize vault first." << std::endl;
+        sqlite3_finalize(stmt);
+        return;
+    }
+
+    // Extract salt, nonce, ciphertext
+    const unsigned char* salt = reinterpret_cast<const unsigned char*>(sqlite3_column_blob(stmt, 0));
+    int salt_size = sqlite3_column_bytes(stmt, 0);
+    const unsigned char* nonce = reinterpret_cast<const unsigned char*>(sqlite3_column_blob(stmt, 1));
+    int nonce_size = sqlite3_column_bytes(stmt, 1);
+    const unsigned char* ct = reinterpret_cast<const unsigned char*>(sqlite3_column_blob(stmt, 2));
+    int ct_size = sqlite3_column_bytes(stmt, 2);
+
+    std::vector<unsigned char> salt_vec(salt, salt + salt_size); //assign bytes to vecotrs 
+    Ciphertext blob;
+    blob.nonce = std::vector<unsigned char>(nonce, nonce + nonce_size);
+    blob.ct = std::vector<unsigned char>(ct, ct + ct_size);
+    
+    sqlite3_finalize(stmt);
+
+    // Prompt for master password
+    std::cout << "Enter master password: " << std::endl;
+    std::string m_pwd;
+    std::getline(std::cin, m_pwd);
+
+    // Derive key and try to decrypt
+    auto key = derive_key(m_pwd, salt_vec);
+    
+    //Compare master password
+    try {
+        std::string decrypted = decrypt(key, blob, "vault-v1");
+        if (decrypted == "a secret password") { //if the decrypted message is this plaintext, then the master password was correct
+            std::cout << "Vault unlocked successfully!" << std::endl;
+            setMasterPassword(m_pwd);
+        } else {
+            std::cerr << "Incorrect master password." << std::endl;
+            sqlite3_close(db);
+            db = nullptr;
+        }
+    } catch (...) {
+        std::cerr << "Incorrect master password." << std::endl;
+        sqlite3_close(db);
+        db = nullptr;
+    }
 }
 
 void Vault::list() {

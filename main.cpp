@@ -25,10 +25,11 @@ int main() {
     Parser parser(vault);
 
     //parser.parse("pmgr init");
+    //my init command
     //parser.parse("pmgr add --title testTitle --username testUsername --password testPassword");
    // parser.parse("pmgr list");
     while (true) {
-
+    
     std::cout << "Enter args (make sure to use pmgr before commands): " << std::endl;
     //Command parser
     std::string request; //add an actual user request

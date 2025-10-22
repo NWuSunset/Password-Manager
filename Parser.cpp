@@ -1,10 +1,12 @@
 #include "Parser.h"
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 Parser::Parser(Vault& v) : vault(v) {
     command_table = {
         {"init", [this](const std::vector<std::string>& cmd) {handle_init(cmd); }},
+        {"open", [this](const std::vector<std::string>& cmd) {handle_open(cmd); }},
         {"add", [this](const std::vector<std::string>& cmd) {handle_add(cmd); }},
          {"list", [this](const std::vector<std::string>& cmd) {handle_list(cmd); }}
     };
@@ -42,6 +44,8 @@ void Parser::executeCommand(std::vector<std::string> cmd) {
     } 
 
     //add case insensitivity?
+    // /home/*user*/password_manager_project/vaults/vault_1.db
+    // test_password
     std::string baseCommand = cmd[1];
     auto it = command_table.find(baseCommand);
     if (it != command_table.end()) {
@@ -53,7 +57,11 @@ void Parser::executeCommand(std::vector<std::string> cmd) {
 }
 
 void Parser::handle_init(const std::vector<std::string> & cmd) {
-    std::string defaultVaultPath = std::string(getenv("HOME")) + "/.password_manager_vault.db";
+    std::string vaultsDir = std::string(getenv("HOME")) + "/pmgr_vaults"; //!CONFIG add to CONFIG file
+    if (!std::filesystem::exists(vaultsDir)) {
+        std::filesystem::create_directory(vaultsDir);
+    }
+    std::string defaultVaultPath = vaultsDir + "/.password_manager_vault.db";
     std::string vaultPath;
 
     if (cmd.size() > 2 && !cmd[2].empty()) {
@@ -62,6 +70,19 @@ void Parser::handle_init(const std::vector<std::string> & cmd) {
         vaultPath = defaultVaultPath;
     }
     vault.init(vaultPath);
+}
+
+void Parser::handle_open(const std::vector<std::string> & cmd) {
+    std::string vaultsDir = std::string(getenv("HOME")) + "/pmgr_vaults"; //!CONFIG
+    std::string defaultVaultPath = vaultsDir + "/.password_manager_vault.db"; 
+    std::string vaultPath;
+
+    if(cmd.size() > 2 && !cmd[2].empty()) {
+        vaultPath = cmd[2];
+    } else {
+        vaultPath = defaultVaultPath;
+    }
+    vault.open(vaultPath);
 }
 
 void Parser::handle_add( const std::vector<std::string> & cmd) {
